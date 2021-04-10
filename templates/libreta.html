@@ -1,0 +1,16 @@
+{%extends 'menu.html'%}
+{%block head%}
+    <h1> Sistema MDR - Enviar Libretas </h1>
+{%endblock%}
+
+{%block contenido%}
+    <form class="Lib" action="{{url_for('enviado')}}" method="post">
+        <label for="">Asunto del Correo</label>
+        <input type="text" name="asunto" id="">
+        <label for="">Correo del destinatario</label>
+        <input type="email" name="email" id="">
+        <label for="">Cargar Libreta</label>
+        <input type="file" name="archivo" id="">
+        <input type="submit" value="Enviar">
+    </form>
+{%endblock%}
