@@ -4,7 +4,6 @@ from flask_mysqldb import MySQL
 from datetime import datetime
 from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
-
 app =Flask(__name__)
 #conexion DB
 app.config['MYSQL_HOST'] = 'localhost'
@@ -20,6 +19,7 @@ app.config['DONT_REPLY_FROM_EMAIL'] = '(Lucas, lucaslunaclaraso@gmail.com)'
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_ASCII_ATTACHMENTS'] =True
+app.config['UPLOAD_FOLDER'] = "./archivos/"
 mail = Mail(app)
 
 #######################################
@@ -35,16 +35,22 @@ def index():
 @app.route('/libreta', methods=['GET', 'POST'])
 def libreta():
     if request.method == 'POST':
+        
         email = request.form['email']
         asunto = request.form['asunto']
-        archivo = request.files['archivo']
-        filename = secure_filename(archivo.filename)
-        archivo.save(os.path.join( filename))
+        archivo = request.files['file']
         
-        enviar = Message(asunto,sender='lucaslunaclaraso@gmail.com', recipients=[email], attachments=None)
-        enviar.body = archivo
-        mail.send(enviar)
-        #flash("El mail se envío correctamente")
+        enviar = Message(asunto,sender='lucaslunaclaraso@gmail.com', recipients=[email])
+        #enviar.attach(filename=archivo)
+        f = secure_filename(archivo.filename)
+        archivo.save(os.path.join(app.config['UPLOAD_FOLDER'],f))
+        with app.open_resource("./archivos/"+f) as fp:
+            enviar.attach(f,'image/jpg', fp.read())
+            enviar.body = f"Hola! {email} le enviamos la libreta del colegio "
+
+            mail.send(enviar)
+        os.remove("./archivos/"+f)
+            #flash("El mail se envío correctamente")
         return redirect(url_for('libreta'))
     return render_template('libreta.html')
 
@@ -54,6 +60,24 @@ def whatsapp():
 
 @app.route('/cuota')
 def cuota():
+    if request.method == 'POST':
+        
+        email = request.form['email']
+        asunto = request.form['asunto']
+        archivo = request.files['file']
+        
+        enviar = Message(asunto,sender='lucaslunaclaraso@gmail.com', recipients=[email])
+        #enviar.attach(filename=archivo)
+        f = secure_filename(archivo.filename)
+        archivo.save(os.path.join(app.config['UPLOAD_FOLDER'],f))
+        with app.open_resource("./archivos/"+f) as fp:
+            enviar.attach(f,'image/jpg', fp.read())
+            enviar.body = f"Hola! {email} le enviamos la cuota  del colegio "
+
+            mail.send(enviar)
+        os.remove("./archivos/"+f)
+        flash("El mail se envío correctamente")
+        return redirect(url_for('cuota'))
     return render_template('cuota.html')
 if __name__ == '__main__':
     app.run(debug=True)
